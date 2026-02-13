@@ -54,22 +54,18 @@
             text-shadow: 0 2px 5px rgba(0,0,0,0.3);
         }
 
-        /* Digital clock specific */
         .clock-display {
             font-family: 'Courier New', Courier, monospace;
             font-size: 5rem;
             font-weight: 700;
-            line-height: 1.2;
-            text-shadow: 0 0 20px rgba(0, 255, 255, 0.7);
             letter-spacing: 5px;
             background: rgba(0, 0, 0, 0.3);
             border-radius: 1rem;
             padding: 1rem 0.5rem;
-            display: inline-block;
             width: 100%;
+            text-shadow: 0 0 20px rgba(0, 255, 255, 0.7);
         }
 
-        /* Countdown specific */
         .countdown-container {
             display: flex;
             flex-wrap: wrap;
@@ -91,7 +87,6 @@
             font-family: 'Courier New', Courier, monospace;
             font-size: 3.2rem;
             font-weight: 700;
-            line-height: 1;
             color: #ffd166;
             text-shadow: 0 0 15px #ffb347;
         }
@@ -111,10 +106,8 @@
             padding: 0.8rem 1.5rem;
             border-radius: 50px;
             display: inline-block;
-            backdrop-filter: blur(5px);
         }
 
-        /* Input section */
         .date-picker-section {
             display: flex;
             flex-wrap: wrap;
@@ -126,27 +119,22 @@
             border-top: 1px solid rgba(255,255,255,0.2);
         }
 
-        .date-picker-section label {
-            font-size: 1rem;
+        label {
             color: #f1f1f1;
         }
 
         input[type="datetime-local"] {
             padding: 0.8rem 1rem;
             border-radius: 2rem;
-            border: none;
+            border: 1px solid rgba(255,255,255,0.3);
             background: rgba(255,255,255,0.2);
             color: white;
             font-size: 1rem;
-            backdrop-filter: blur(5px);
-            border: 1px solid rgba(255,255,255,0.3);
-            flex: 1 1 250px;
             min-width: 200px;
         }
 
         input[type="datetime-local"]::-webkit-calendar-picker-indicator {
             filter: invert(1);
-            cursor: pointer;
         }
 
         .btn {
@@ -156,10 +144,8 @@
             background: #ffb347;
             color: #1e2a3a;
             font-weight: 600;
-            font-size: 1rem;
             cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            transition: 0.3s;
         }
 
         .btn:hover {
@@ -195,184 +181,71 @@
 </head>
 <body>
     <div class="container">
-        <!-- Digital Clock Card -->
         <div class="card">
             <h2 class="card-title">Live Digital Clock</h2>
             <div id="clock" class="clock-display">00:00:00</div>
         </div>
 
-        <!-- Custom Countdown Card -->
         <div class="card">
             <h2 class="card-title">Custom Countdown</h2>
-            
-            <!-- Countdown display blocks -->
-            <div id="countdown" class="countdown-container">
-                <div class="countdown-block">
-                    <div id="days" class="countdown-number">00</div>
-                    <div class="countdown-label">Days</div>
-                </div>
-                <div class="countdown-block">
-                    <div id="hours" class="countdown-number">00</div>
-                    <div class="countdown-label">Hours</div>
-                </div>
-                <div class="countdown-block">
-                    <div id="minutes" class="countdown-number">00</div>
-                    <div class="countdown-label">Minutes</div>
-                </div>
-                <div class="countdown-block">
-                    <div id="seconds" class="countdown-number">00</div>
-                    <div class="countdown-label">Seconds</div>
-                </div>
+
+            <div class="countdown-container">
+                <div class="countdown-block"><div id="days" class="countdown-number">00</div><div class="countdown-label">Days</div></div>
+                <div class="countdown-block"><div id="hours" class="countdown-number">00</div><div class="countdown-label">Hours</div></div>
+                <div class="countdown-block"><div id="minutes" class="countdown-number">00</div><div class="countdown-label">Minutes</div></div>
+                <div class="countdown-block"><div id="seconds" class="countdown-number">00</div><div class="countdown-label">Seconds</div></div>
             </div>
 
-            <!-- Display target date or message -->
             <div id="targetDisplay" class="target-info">⏳ Set a date below</div>
 
-            <!-- Date picker and set button -->
             <div class="date-picker-section">
                 <label for="targetDateTime">Pick date & time:</label>
                 <input type="datetime-local" id="targetDateTime">
                 <button class="btn" id="setCountdownBtn">Start Countdown</button>
             </div>
+
             <div id="message" class="message"></div>
         </div>
     </div>
 
     <script>
-        // Live clock update
         function updateClock() {
             const now = new Date();
-            const hours = String(now.getHours()).padStart(2, '0');
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            const seconds = String(now.getSeconds()).padStart(2, '0');
-            document.getElementById('clock').textContent = `${hours}:${minutes}:${seconds}`;
+            document.getElementById('clock').textContent =
+                `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
         }
 
-        // Countdown logic
-        let targetDate = null; // Will hold the user-defined Date object
+        let targetDate = null;
 
-        // Function to update countdown display based on targetDate
         function updateCountdown() {
-            const now = new Date();
+            if (!targetDate) return;
 
-            if (!targetDate) {
-                // No target set: show zeros and prompt
-                document.getElementById('days').textContent = '00';
-                document.getElementById('hours').textContent = '00';
-                document.getElementById('minutes').textContent = '00';
-                document.getElementById('seconds').textContent = '00';
-                document.getElementById('targetDisplay').innerHTML = '⏳ No target set. Pick a date!';
+            const diff = targetDate - new Date();
+            if (diff <= 0) {
+                document.getElementById('targetDisplay').textContent = '🎉 Target date passed!';
                 return;
             }
 
-            const diffMs = targetDate - now;
-
-            if (diffMs <= 0) {
-                // Target date has passed
-                document.getElementById('days').textContent = '00';
-                document.getElementById('hours').textContent = '00';
-                document.getElementById('minutes').textContent = '00';
-                document.getElementById('seconds').textContent = '00';
-                document.getElementById('targetDisplay').innerHTML = '🎉 Target date has passed! Set a new one.';
-                return;
-            }
-
-            // Calculate remaining time
-            const totalSeconds = Math.floor(diffMs / 1000);
-            const days = Math.floor(totalSeconds / (3600 * 24));
-            const hours = Math.floor((totalSeconds % (3600 * 24)) / 3600);
-            const minutes = Math.floor((totalSeconds % 3600) / 60);
-            const seconds = totalSeconds % 60;
-
-            // Update DOM
-            document.getElementById('days').textContent = String(days).padStart(2, '0');
-            document.getElementById('hours').textContent = String(hours).padStart(2, '0');
-            document.getElementById('minutes').textContent = String(minutes).padStart(2, '0');
-            document.getElementById('seconds').textContent = String(seconds).padStart(2, '0');
-
-            // Format target date for display
-            const options = { 
-                year: 'numeric', month: 'long', day: 'numeric', 
-                hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true 
-            };
-            const targetString = targetDate.toLocaleDateString(undefined, options);
-            document.getElementById('targetDisplay').innerHTML = `🎯 Target: ${targetString}`;
+            const s = Math.floor(diff / 1000);
+            document.getElementById('days').textContent = String(Math.floor(s / 86400)).padStart(2,'0');
+            document.getElementById('hours').textContent = String(Math.floor(s % 86400 / 3600)).padStart(2,'0');
+            document.getElementById('minutes').textContent = String(Math.floor(s % 3600 / 60)).padStart(2,'0');
+            document.getElementById('seconds').textContent = String(s % 60).padStart(2,'0');
         }
 
-        // Event handler for setting the countdown
-        function setUserCountdown() {
-            const input = document.getElementById('targetDateTime').value;
-            const messageEl = document.getElementById('message');
+        document.getElementById('setCountdownBtn').onclick = () => {
+            const val = document.getElementById('targetDateTime').value;
+            if (!val) return;
+            targetDate = new Date(val);
+            document.getElementById('message').textContent = '✅ Countdown set';
+        };
 
-            if (!input) {
-                messageEl.textContent = '❌ Please select a date and time.';
-                return;
-            }
-
-            // Create date object from input (local time)
-            const selectedDate = new Date(input);
-
-            // Validate if it's a real date
-            if (isNaN(selectedDate.getTime())) {
-                messageEl.textContent = '❌ Invalid date.';
-                return;
-            }
-
-            // Check if it's in the past (optional warning, but we allow setting)
-            const now = new Date();
-            if (selectedDate <= now) {
-                messageEl.textContent = '⚠️ This date is in the past. Countdown will show expired.';
-            } else {
-                messageEl.textContent = '✅ Countdown set!';
-            }
-
-            // Set the target date
-            targetDate = selectedDate;
-
-            // Immediately update countdown display
-            updateCountdown();
-        }
-
-        // Initialize with a default target: next New Year
-        function setDefaultTarget() {
-            const now = new Date();
-            const currentYear = now.getFullYear();
-            // Next New Year's Day (Jan 1, 00:00:00)
-            const newYear = new Date(currentYear + 1, 0, 1, 0, 0, 0);
-            targetDate = newYear;
-
-            // Also set the input field to that date/time for user visibility
-            const year = newYear.getFullYear();
-            const month = String(newYear.getMonth() + 1).padStart(2, '0');
-            const day = String(newYear.getDate()).padStart(2, '0');
-            const hours = String(newYear.getHours()).padStart(2, '0');
-            const minutes = String(newYear.getMinutes()).padStart(2, '0');
-            // datetime-local expects format: YYYY-MM-DDTHH:mm
-            document.getElementById('targetDateTime').value = `${year}-${month}-${day}T${hours}:${minutes}`;
-            
-            document.getElementById('message').textContent = '✨ Default target: Next New Year';
-            updateCountdown();
-        }
-
-        // Set up event listeners
-        document.getElementById('setCountdownBtn').addEventListener('click', setUserCountdown);
-
-        // Optionally, allow pressing Enter in the input field
-        document.getElementById('targetDateTime').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                setUserCountdown();
-            }
-        });
-
-        // Start periodic updates
         setInterval(() => {
             updateClock();
             updateCountdown();
         }, 1000);
 
-        // Initialize default target and clock
-        setDefaultTarget();
-        updateClock(); // immediate clock display
+        updateClock();
     </script>
 </body>
 </html>
